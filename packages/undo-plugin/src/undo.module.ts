@@ -1,14 +1,15 @@
-import { NgModule } from '@angular/core';
+import { ModuleWithProviders, NgModule } from '@angular/core';
 import { NGXS_PLUGINS } from '@ngxs/store';
+import { NgxsUndoPluginOptions } from '@ngxs/undo-plugin/src/options';
 
 import { NgxsUndoPlugin } from './undo.plugin';
 import { NGXS_UNDO_PLUGIN_OPTIONS } from './options';
 
 @NgModule()
 export class NgxsUndoPluginModule {
-  static forRoot(config?: any) {
+  static forRoot(config?: NgxsUndoPluginOptions): ModuleWithProviders {
     return {
-      NgModule: NgxsUndoPluginModule,
+      ngModule: NgxsUndoPluginModule,
       providers: [
         {
           provide: NGXS_PLUGINS,
@@ -17,7 +18,7 @@ export class NgxsUndoPluginModule {
         },
         {
           provide: NGXS_UNDO_PLUGIN_OPTIONS,
-          useValue: config
+          useValue: config || { stackLimit: 5 }
         }
       ]
     };
