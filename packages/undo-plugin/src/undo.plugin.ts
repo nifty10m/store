@@ -9,6 +9,7 @@ import { NGXS_UNDO_PLUGIN_OPTIONS } from './options';
 @Injectable()
 export class NgxsUndoPlugin implements NgxsPlugin {
   private undoStack: any[] = [];
+  private currentState: any;
   private redoStack: any[] = [];
 
   constructor(@Inject(NGXS_UNDO_PLUGIN_OPTIONS) private options: NgxsUndoPluginOptions = { stackLimit: 25 }) {}
@@ -18,36 +19,27 @@ export class NgxsUndoPlugin implements NgxsPlugin {
     const isUndoAction = matches(Undo);
     const isRedoAction = matches(Redo);
 
-    if (isUndoAction && this.undoStack.length > 1) {
-      const newState = this.undoStack.pop();
-      this.redoStack.push(newState);
-      return next(this.undoStack[this.undoStack.length - 1], action);
-    } else if (isUndoAction) {
-      return next(this.undoStack[0], action);
-    }
-
-    if (isRedoAction && this.redoStack.length > 0) {
-      const newState = this.redoStack.pop();
-      this.undoStack.push(newState);
-      return next(newState, action);
-    }
-
-    if (action instanceof UndoableAction) {
+    if (isUndoAction && this.undoStack.length) {
+      this.redoStack.unshift(this.currentState);
+      this.currentState = this.undoStack.shift();
+      return next(this.currentState, action);
+    } else if (isRedoAction && this.redoStack.length) {
+      this.undoStack.unshift(this.currentState);
+      this.currentState = this.redoStack.shift();
+      return next(this.currentState, action);
+    } else if (action instanceof UndoableAction) {
       return next(state, action).pipe(
         tap(newState => {
-          this.undoStack.push(newState);
+          this.undoStack.unshift(this.currentState);
           if (this.options.stackLimit < this.undoStack.length) {
-            this.undoStack.splice(0, 1);
+            this.undoStack.length = this.options.stackLimit;
           }
+          this.currentState = newState;
+          this.redoStack = [];
         })
       );
+    } else {
+      return next(state, action).pipe(tap(newState => (this.currentState = newState)));
     }
-
-    // if we don't have an undo history here, we need to keep updating the base state
-    if (this.undoStack.length < 2) {
-      return next(state, action).pipe(tap(newState => (this.undoStack[0] = newState)));
-    }
-
-    return next(state, action);
   }
 }

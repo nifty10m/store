@@ -26,8 +26,6 @@ class CounterState {
   }
 }
 
-// Test UndoPlugin
-
 describe('NgxsUndoPlugin', () => {
   let store: Store;
 
@@ -131,7 +129,7 @@ describe('NgxsUndoPlugin', () => {
       store.dispatch(new Undo());
       store.dispatch(new Undo());
       tick();
-      expect(store.selectSnapshot(CounterState)).toBe(3);
+      expect(store.selectSnapshot(CounterState)).toBe(2);
 
       store.dispatch(new Redo());
       store.dispatch(new Redo());
