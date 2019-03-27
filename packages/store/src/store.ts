@@ -43,6 +43,9 @@ export class Store {
     return this._stateStream.pipe(
       map(selectorFn),
       catchError(err => {
+        if (this._config.developmentMode) {
+          console.warn('NGXS: An error was swallowed in a selector', selectorFn.name, err);
+        }
         // if error is TypeError we swallow it to prevent usual errors with property access
         if (err instanceof TypeError) {
           return of(undefined);
