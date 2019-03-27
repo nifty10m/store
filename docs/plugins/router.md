@@ -15,11 +15,12 @@ time-travel debugging, and easy access from any store-connected component.
 
 This plugin binds that state from the Angular router to our NGXS store.
 
-## Install
-The Router plugin can be installed using NPM:
-
+## Installation
 ```bash
-npm i @ngxs/router-plugin --S
+npm install @ngxs/router-plugin --save
+
+# or if you are using yarn
+yarn add @ngxs/router-plugin
 ```
 
 ## Usage
@@ -38,7 +39,7 @@ import { NgxsRouterPluginModule } from '@ngxs/router-plugin';
 export class AppModule {}
 ```
 
-Now the route will be reflected in your store under the `route` state name. The
+Now the route will be reflected in your store under the `router` state name. The
 state is represented as a `RouterStateSnapshot` object.
 
 You can also navigate using the store's dispatch method. It accepts the following
@@ -64,3 +65,44 @@ export class MyApp {
 You can use action handlers to listen to state changes in your components
 and services by subscribing to the `RouterNavigation`, `RouterCancel` or `RouterError`
 action classes.
+
+## Custom Router State Serializer
+You can implement your own router state serializer to serialize the router snapshot.
+
+```TS
+import { Params, RouterStateSnapshot } from '@angular/router';
+
+import { NgxsModule } from '@ngxs/store';
+import { NgxsRouterPluginModule, RouterStateSerializer } from '@ngxs/router-plugin';
+
+export interface RouterStateParams {
+  url: string;
+  params: Params;
+  queryParams: Params;
+}
+
+// Map the router snapshot to { url, params, queryParams }
+export class CustomRouterStateSerializer implements RouterStateSerializer<RouterStateParams> {
+  serialize(routerState: RouterStateSnapshot): RouterStateParams {
+    const {
+      url,
+      root: { queryParams }
+    } = routerState;
+
+    let { root: route } = routerState;
+    while (route.firstChild) {
+      route = route.firstChild;
+    }
+
+    const { params } = route;
+
+    return { url, params, queryParams };
+  }
+}
+
+@NgModule({
+  imports: [NgxsModule.forRoot([]), NgxsRouterPluginModule.forRoot()],
+  providers: [{ provide: RouterStateSerializer, useClass: CustomRouterStateSerializer }]
+})
+export class AppModule {}
+```

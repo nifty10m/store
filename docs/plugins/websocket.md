@@ -1,11 +1,12 @@
 # Websocket Plugin - Experimental Status
 Bind server websocket events to Ngxs store actions.
 
-## Install
-The Websocket plugin can be installed using NPM:
-
+## Installation
 ```bash
-npm i @ngxs/websocket-plugin --S
+npm install @ngxs/websocket-plugin --save
+
+# or if you are using yarn
+yarn add @ngxs/websocket-plugin
 ```
 
 ## Configuration
@@ -31,6 +32,7 @@ The plugin has a variety of options that can be passed:
 - `url`: Url of the websocket connection. Can be passed here or by the `ConnectWebsocket` action.
 - `typeKey`: Object property that maps the websocket message to a action type. Default: `type`
 - `serializer`: Serializer used before sending objects to the websocket. Default: `JSON.stringify`
+- `deserializer`: Deserializer used for messages arriving from the websocket. Default: `JSON.parse`
 
 ## Usage
 Once connected, any message that comes across the websocket will be bound to the state event stream.
@@ -108,8 +110,9 @@ export class AppComponent {
 
 Here is a list of all the available actions you have:
 
-- `ConnectWebSocket`: Action dispatched when you want to init the websocket. Optionally pass URL here.
-- `DisconnectWebSocket`: Action dispatched when the websockets disconnect.
+- `ConnectWebSocket`: Dispatch this action when you want to init the websocket. Optionally pass URL here.
+- `DisconnectWebSocket`: Dispatch this Action to disconnect a websockets.
+- `WebSocketDisconnected`: Action dispatched when websocket is disconnected. Use its handler for reconnecting.
 - `SendWebSocketMessage`: Send a message to the server.
-- `WebsocketMessageError`: Error ocurred when receiving a message.
+- `WebsocketMessageError`: Action dispatched by this plugin when an error ocurrs upon receiving a message.
 
